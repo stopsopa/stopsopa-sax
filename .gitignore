@@ -1,0 +1,5 @@
+.idea/
+.vagrant/
+*.tar
+*.gz
+vendor

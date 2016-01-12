@@ -1,0 +1,259 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure(2) do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://atlas.hashicorp.com/search.
+  config.vm.box = "ubuntu/trusty64"
+
+
+  # montowanie dla serwera oraz watch
+  # config.vm.synced_folder ".", "/vagrant/nfs", type: "nfs"
+
+  # montowanie dla ide
+  config.vm.synced_folder ".", "/vagrant/vbox"
+
+  # teraz po stronie windows wystarczy:
+
+    # https://github.com/gulpjs/gulp/issues/448#issuecomment-43750833    g(Watch is very slow to recognize file modifications)
+
+      # :nfs => true,
+      # :mount_options => ['nolock,vers=3,udp,noatime']
+
+  # mozliwe ze trfie wreszcie w usera 'vagrant'
+  # config.winnfsd.uid = 1000
+  # config.winnfsd.gid = 1000
+
+  # config.vm.provision :shell, path: "bootstrap.sh"
+
+  # web
+  # config.vm.network :forwarded_port, guest: 80, host: 4680
+  # node
+  # config.vm.network :forwarded_port, guest: 3000, host: 4601
+  # mysql
+  # config.vm.network :forwarded_port, guest: 3306, host: 4602
+
+  # config.vm.network "private_network", type: "dhcp"
+
+  # https://docs.vagrantup.com/v2/virtualbox/networking.html
+  config.vm.network "private_network", ip: "172.28.128.26"
+  # jesli z maszyny hostowej nie da sie robic ping do hostonly
+  # wtedy najprosciej zmienic ip i wykonac "vagrant relaod"
+  # pozostaje jeszcze zmiana ip w konfiguracjach:
+  # - vinscp
+  # - heidisql
+  # - hosts
+  # zródlo: http://superuser.com/a/1016731  g(Can't ping to vagrant box)
+
+
+    # virtualbox__intnet: true
+
+    # virtualbox__intnet: "mynetwork"
+
+  # hosts     192.168.50.4 node.vagrant
+
+
+  # Disable automatic box update checking. If you disable this, then
+  # boxes will only be checked for updates when the user runs
+  # `vagrant box outdated`. This is not recommended.
+  # config.vm.box_check_update = false
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  # config.vm.network "private_network", ip: "192.168.33.10"
+
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  # config.vm.network "public_network"
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  # config.vm.synced_folder "../data", "/vagrant_data"
+
+  # Provider-specific configuration so you can fine-tune various
+  # backing providers for Vagrant. These expose provider-specific options.
+  # Example for VirtualBox:
+  #
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "stopsopa-sax"
+  #   # Display the VirtualBox GUI when booting the machine
+  #   vb.gui = true
+  #
+  #   # Customize the amount of memory on the VM:
+    vb.memory = "1524"
+
+    #http://blog.rudylee.com/2014/10/27/symbolic-links-with-vagrant-windows/
+    vb.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/v-root", "1"]
+  end
+  
+    # nie umieszczac tutaj kropki, lepiej uzywac myslnika
+  config.vm.hostname = "stopsopa-sax"
+
+
+  #
+  # View the documentation for the provider you are using for more
+  # information on available options.
+
+  # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
+  # such as FTP and Heroku are also available. See the documentation at
+  # https://docs.vagrantup.com/v2/push/atlas.html for more information.
+  # config.push.define "atlas" do |push|
+  #   push.app = "YOUR_ATLAS_USERNAME/YOUR_APPLICATION_NAME"
+  # end
+
+  # Enable provisioning with a shell script. Additional provisioners such as
+  # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+  # documentation for more information about their specific syntax and use.
+    # sudo apt-get update
+    # sudo apt-get install -y apache2
+
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "---------------- start ------------- vvv"
+    id
+    sudo id
+    ls -la /vagrant/vbox
+
+    # https://github.com/nodesource/distributions#deb
+    curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
+    apt-get install -y nodejs
+
+    # liby potrzebne do instalacji node-gyp
+    apt-get install -y build-essential g++
+    npm install -g gulp
+    npm install -g node-gyp
+
+
+    # trzeba tu wejsc aby utworzyc poprawne symlinki
+    cd /vagrant/vbox
+
+    # bWtsaW5rIC9EIGNhY2hlICIuLlwuXC4uXGNhY2hlIg== - tutaj sztuczka z mklink gdzie mamy dwa wskzniki na katalog wyzej
+    # mklink /D node_modules ".. backslash node_modules"
+    # mklink /D vendor ".. backslash vendor"
+
+    echo -e "cd /vagrant/vbox\n" > /home/vagrant/vbox
+    chmod a+x /home/vagrant/vbox
+
+    apt-get install -y curl apache2 php5 libapache2-mod-php5 php5-sqlite php5-intl php5-curl php5-mcrypt git-core php5-xdebug php5-mysql
+
+        echo '==== composer ===='
+
+    curl -sS https://getcomposer.org/installer | php &> /dev/null && mv composer.phar /usr/local/bin/composer
+
+        echo "==== timezone cli ====="
+
+    sed -ri "s/;date\\.timezone =/date\\.timezone = Europe\\/Berlin/g" /etc/php5/cli/php.ini
+
+        echo "==== timezone apache2 ====="
+
+    sed -ri "s/;date\\.timezone =/date\\.timezone = Europe\\/Berlin/g" /etc/php5/apache2/php.ini
+
+
+    # https://getcomposer.org/doc/articles/troubleshooting.md#xdebug-impact-on-composer
+        echo "==== setup xdebug cli ===="
+
+    echo -e "\n;zend_extension=/usr/lib/php5/20121212/xdebug.so\nxdebug.remote_enable=1\nxdebug.remote_host=host\nxdebug.remote_port=9000\n;xdebug.profiler_output_dir= /vagrant/vbox/xdebug/profiles\n;xdebug.profiler_enable_trigger=1\n;xdebug.profiler_enable=1\n" >> /etc/php5/cli/php.ini
+
+        echo "==== setup xdebug apache2 ===="
+
+    echo -e "\nzend_extension=/usr/lib/php5/20121212/xdebug.so\nxdebug.remote_enable=1\nxdebug.remote_host=host\nxdebug.remote_port=9000\n;xdebug.profiler_output_dir= /vagrant/vbox/xdebug/profiles\n;xdebug.profiler_enable_trigger=1\n;xdebug.profiler_enable=1\n" >> /etc/php5/apache2/php.ini
+
+        echo "==== DocumentRoot ====="
+
+    sed -ri "s/DocumentRoot \\/var\\/www\\/html/DocumentRoot \\/vagrant\\/vbox\\/web/g" /etc/apache2/sites-available/000-default.conf
+
+        echo "==== ServerName ====="
+
+    sed -i "1s/^/ServerName localhost\\n/" /etc/apache2/apache2.conf
+
+        echo "==== \\/var\\/www -> \\/vagrant ===="
+
+    sed -ri "s/Directory \\/var\\/www/Directory \\/vagrant/g" /etc/apache2/apache2.conf
+
+        echo "==== \\/var\\/www -> \\/vagrant ===="
+
+                                                    sed -i "1s/^/stopsopa-sax host\\n/" /etc/hosts
+
+        echo "==== setup bash root user ===="
+
+    curl http:\/\/httpd.pl\/\/bundles\/toolssitecommon\/tools\/bash\/bashrc.sh.unc 2> /dev/null | bash
+
+        echo "==== setup bash vagrant user ===="
+
+    su vagrant -c "curl http:\\/\\/httpd.pl\\/\\/bundles\\/toolssitecommon\\/tools\\/bash\\/bashrc.sh.unc 2> /dev/null | bash"
+
+    mkdir -p /vagrant/vbox/web
+    if ! [ -L /var/www ]; then
+        rm -rf /var/www
+        ln -fs /vagrant/vbox/web /var/www
+    fi
+
+        echo "==== apache2 enable modrewrite ===="
+
+    a2enmod rewrite
+
+        echo "==== apache2 enable .htaccess ===="
+
+# ==> default: ==== apache2 enable .htaccess ====
+# ==> default: sed: -e expression #1, char 43: unterminated `s' command
+# tutaj wzornik jak to jest z tymi slashami:  sed -ri "s/\\/vagrant\\/vbox\\/web/replace/g" /vagrant/vbox/test.log
+# czyli slashowac dodatkowo znak 'backslash' zracji iz jestesmy w pliku vagrant w bloku config.vm.provision, reszta normalnie
+# generalnie trzeba pisac wszystko jak w normalnym bash ale na koniec backslash globalnie zamienic na dwa backslashe
+ 
+
+    sed -ri "s/DocumentRoot\\s+([^\\n\\r]*)/DocumentRoot \\1\\n<Directory \\"\\1\\">\\nOptions MultiViews Indexes FollowSymLinks ExecCGI\\nAllowOverride All\\nOrder allow,deny\\nallow from all\\n<\\/Directory>\\n/g"  /etc/apache2/sites-available/000-default.conf
+
+
+    chown vagrant:vagrant /vagrant
+    chmod 777 /vagrant
+    mkdir -p                                       /vagrant/logs /vagrant/cache /vagrant/vendor /vagrant/node_modules /vagrant/asset
+    chown vagrant:vagrant /vagrant/*
+    chmod 777 /vagrant/*
+    setfacl -dR -m u:www-data:rwx -m u:vagrant:rwx /vagrant/logs /vagrant/cache /vagrant/vendor /vagrant/node_modules /vagrant/asset
+
+    service apache2 stop
+
+    service apache2 start
+
+    # sudo -i
+    # apt-get install -y mysql-server
+    # sed -ri "s/bind-address\\s*=\\s*127.0.0.1/# bind-address = 127\\.0\\.0\\.1/g" /etc/mysql/my.cnf
+    # SHOW GRANTS FOR 'root'@'localhost';
+    # mysql -u root -p -e "GRANT ALL PRIVILEGES ON *.* TO root@'%' IDENTIFIED BY '6yhn' WITH GRANT OPTION;"
+    # mysql -u root -p -e "CREATE DATABASE beta_absolvent_pl /*\\!40100 COLLATE 'utf8_polish_ci' */;"
+    # service mysql restart
+    # mysqldump -C -h source_host -u source_user -psource_pass source_db | mysql -h localhost -u root -ptarget_pass vagrant_beta_absolvent_pl
+
+    # upgrade from 5.5.46 to 5.6.25
+    # sudo -i
+    # apt-get update
+    # apt-get upgrade
+    # apt-get install -y mysql-server-5.6
+    # test version SHOW VARIABLES LIKE "%version%";
+
+    # update php from PHP 5.5.9-1ubuntu4.14 (cli) (built: Oct 28 2015 01:34:46) to PHP 5.6.16-3+deb.sury.org~trusty+1 (cli)
+    # ZnJvbQ0KUEhQIDUuNS45LTF1YnVudHU0LjE0IChjbGkpIChidWlsdDogT2N0IDI4IDIwMTUgMDE6MzQ6NDYpDQpDb3B5cmlnaHQgKGMpIDE5OTctMjAxNCBUaGUgUEhQIEdyb3VwDQpaZW5kIEVuZ2luZSB2Mi41LjAsIENvcHlyaWdodCAoYykgMTk5OC0yMDE0IFplbmQgVGVjaG5vbG9naWVzDQogICAgd2l0aCBaZW5kIE9QY2FjaGUgdjcuMC4zLCBDb3B5cmlnaHQgKGMpIDE5OTktMjAxNCwgYnkgWmVuZCBUZWNobm9sb2dpZXMNCiAgICB3aXRoIFhkZWJ1ZyB2Mi4yLjMsIENvcHlyaWdodCAoYykgMjAwMi0yMDEzLCBieSBEZXJpY2sgUmV0aGFucw0KDQp0bw0KUEhQIDUuNi4xNi0zK2RlYi5zdXJ5Lm9yZ350cnVzdHkrMSAoY2xpKQ0KQ29weXJpZ2h0IChjKSAxOTk3LTIwMTUgVGhlIFBIUCBHcm91cA0KWmVuZCBFbmdpbmUgdjIuNi4wLCBDb3B5cmlnaHQgKGMpIDE5OTgtMjAxNSBaZW5kIFRlY2hub2xvZ2llcw0KICAgIHdpdGggWmVuZCBPUGNhY2hlIHY3LjAuNi1kZXYsIENvcHlyaWdodCAoYykgMTk5OS0yMDE1LCBieSBaZW5kIFRlY2hub2xvZ2llcw0KICAgIHdpdGggWGRlYnVnIHYyLjMuMywgQ29weXJpZ2h0IChjKSAyMDAyLTIwMTUsIGJ5IERlcmljayBSZXRoYW5zDQo=
+    # http://askubuntu.com/a/565961
+    # sudo -i
+    # apt-add-repository ppa:ondrej/php5-5.6
+    # sudo apt-get update
+    # sudo apt-get install php5
+    
+    echo "---------------- end ------------- ^^^"
+  SHELL
+end

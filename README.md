@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/stopsopa/stopsopa-sax.svg?branch=master)](https://travis-ci.org/stopsopa/stopsopa-sax)
 [![Coverage Status](https://coveralls.io/repos/stopsopa/stopsopa-sax/badge.svg?branch=master&service=github)](https://coveralls.io/github/stopsopa/stopsopa-sax?branch=master)
+[ ![Codeship Status for stopsopa/stopsopa-sax](https://codeship.com/projects/0f4debe0-9ec5-0133-8d32-76efcd0f79bd/status?branch=master)](https://codeship.com/projects/127803)
 
 
 <h1>stopsopa/annotations</h1>

@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/stopsopa/stopsopa-sax.svg?branch=master)](https://travis-ci.org/stopsopa/stopsopa-sax)
-
+[![Coverage Status](https://coveralls.io/repos/stopsopa/stopsopa-sax/badge.svg?branch=master&service=github)](https://coveralls.io/github/stopsopa/stopsopa-sax?branch=master)
 
 
 <h1>stopsopa/annotations</h1>

@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/stopsopa/stopsopa-sax.svg?branch=master)](https://travis-ci.org/stopsopa/stopsopa-sax)
+
+
 
 <h1>stopsopa/annotations</h1>
 

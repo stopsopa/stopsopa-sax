@@ -12,5 +12,6 @@
         "psr-0": { "Stopsopa\\Sax": "src/" }
     },
     "require": {
+        "satooshi/php-coveralls": "^1.0"
     }
 }

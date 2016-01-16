@@ -26,17 +26,6 @@ class AbstractParser
         $this->i = 0;
     }
 
-    protected function _isFirstCharInLineAndAt(&$s)
-    {
-        return $s === '@' && $this->_isFirstCharInLine();
-    }
-
-    protected function _isFirstCharInLine()
-    {
-        $this->_getChar();
-        return $this->thisIsFirstNotWhiteChar;
-    }
-
     protected function _getChar($o = null, $nextNotWhiteChar = false)
     {
         if ($o || $nextNotWhiteChar) {
@@ -99,13 +88,13 @@ class AbstractParser
         return $this->_isSpace($s) || $this->_isNewLine($s);
     }
 
-    protected function _isDelimiter(&$s)
-    {
-        return ($s === "=") || ($s === ":") || ($s === ",");
-    }
+//    protected function _isDelimiter(&$s)
+//    {
+//        return ($s === "=") || ($s === ":") || ($s === ",");
+//    }
 
-    protected function _isForbiddenChar(&$s)
-    {
-        return $this->_isDelimiter($s) || ($s === "{") || ($s === "(") || ($s === ")") || ($s === "}") || $this->_isWhiteChar($s) || ($s === "@");
-    }
+//    protected function _isForbiddenChar(&$s)
+//    {
+//        return $this->_isDelimiter($s) || in_array($s, '<','>') || $this->_isWhiteChar($s);
+//    }
 }

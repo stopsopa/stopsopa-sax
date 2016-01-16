@@ -3,3 +3,6 @@
 *.tar
 *.gz
 vendor
+
+# tylko po to aby nie commitowało zakomentowanego pliku
+phpunit.xml

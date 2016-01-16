@@ -1,6 +1,6 @@
 <?php
 
-namespace Stopsopa\Sax\Tests\Lib;
+namespace Stopsopa\Sax\Tests;
 
 use Stopsopa\Sax\Sax;
 

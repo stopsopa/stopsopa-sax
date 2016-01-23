@@ -26,48 +26,57 @@ class AbstractParser
         $this->i = 0;
     }
 
-    protected function _getChar($o = null, $nextNotWhiteChar = false)
-    {
+    protected $offsettmp;
+    /*
+     * Z metodą pracuje się tak że można pobrać dowolny znak
+     * z uwzględnieniem przesunięcia podanego w $o (jeśli brak to zwraca z pod
+     * wskaźnika $this->i). Samo pobranie z użyciem tej metody nie powoduje przesunięcia tego wskaźnika
+     * Jednoszcześnie testowany wskąźnik zapisywany jest w $this->offsettmp
+     *
+     */
+    /**
+     * @param null $o
+     * @param bool $nextNotWhiteChar  true - zwraca pierwzy nie biały znak,
+     * @return bool|null|string
+     */
+    protected function _getChar($o = null, $nextNotWhiteChar = false) {
+
         if ($o || $nextNotWhiteChar) {
+            $this->offsettmp = $this->i + $o;
 
-            $offset = $this->i + $o;
-
-            if (($offset > $this->c) || ($offset < 0)) {
+            if ( ($this->offsettmp > $this->c) || ($this->offsettmp < 0) )
                 return null;
-            }
 
-            $s = mb_substr($this->data, $offset, 1, $this->encoding);
+            $s = mb_substr($this->data, $this->offsettmp, 1);
 
-            if ($nextNotWhiteChar && $this->_isWhiteChar($s)) {
-                $s = $this->_getChar($o + 1, true);
-            }
+            if ($nextNotWhiteChar && $this->_isWhiteChar($s))
+                $s = $this->_getChar($o+1, true);
 
             return $s;
         }
 
-        if ($this->i > $this->c) {
+        if ($this->i > $this->c)
             return false;
-        }
 
         if ($this->cachei !== $this->i) {
-
             $this->cachei = $this->i;
-            $this->cachec = mb_substr($this->data, $this->i, 1, $this->encoding);
+            $this->cachec = mb_substr($this->data, $this->i, 1);
 
-            if ($this->thisIsFirstNotWhiteChar) {
-                $this->thisIsFirstNotWhiteChar = false;
-                $this->canBeFirstNWC = false;
-            }
+//            if ($this->thisIsFirstNotWhiteChar) {
+//                $this->thisIsFirstNotWhiteChar = false;
+//                $this->canBeFirstNWC = false;
+//            }
+//
+//            if ($this->canBeFirstNWC && !$this->_isWhiteChar($this->cachec)) {
+//                $this->thisIsFirstNotWhiteChar = true;
+//                $this->canBeFirstNWC = false;
+//            }
+//
+//            if ($this->_isNewLine($this->cachec)) {
+//                $this->thisIsFirstNotWhiteChar = false;
+//                $this->canBeFirstNWC = true;
+//            }
 
-            if ($this->canBeFirstNWC && !$this->_isWhiteChar($this->cachec)) {
-                $this->thisIsFirstNotWhiteChar = true;
-                $this->canBeFirstNWC = false;
-            }
-
-            if ($this->_isNewLine($this->cachec)) {
-                $this->thisIsFirstNotWhiteChar = false;
-                $this->canBeFirstNWC = true;
-            }
         }
 
         return $this->cachec;
@@ -87,7 +96,23 @@ class AbstractParser
     {
         return $this->_isSpace($s) || $this->_isNewLine($s);
     }
+    protected function _d($c = '') {
+        ob_start();
+        var_dump('<'.$this->_f($this->_getChar()).'>'. $this->_f(mb_substr($this->data, $this->i, 60)).'<');
+        $d = ob_get_clean();
 
+        fwrite(STDOUT, $d);
+    }
+    protected function _f($k) {
+        return str_replace("\r",'\r',str_replace("\n",'\n',$k));
+    }
+
+    protected function _o($data) {
+        ob_start();
+        var_dump($data);
+        $d = ob_get_clean();
+        fwrite(STDOUT, $d);
+    }
 //    protected function _isDelimiter(&$s)
 //    {
 //        return ($s === "=") || ($s === ":") || ($s === ",");

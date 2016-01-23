@@ -5,4 +5,7 @@
 vendor
 
 # tylko po to aby nie commitowało zakomentowanego pliku
-phpunit.xml
+/phpunit.xml
+/composer.phar
+/coveralls.phar
+/build/logs

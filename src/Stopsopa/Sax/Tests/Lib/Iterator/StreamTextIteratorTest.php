@@ -34,6 +34,8 @@ class StreamTextIteratorTest extends PHPUnit_Framework_TestCase {
 
                 $i += 1;
             }
+
+            $this->assertSame($iter->next(), $this->_next($i));
         }
     }
     protected function _testString($file) {
@@ -54,6 +56,8 @@ class StreamTextIteratorTest extends PHPUnit_Framework_TestCase {
 
                 $i += 1;
             }
+
+            $this->assertSame($iter->next(), $this->_next($i));
         }
     }
     protected function _next($i) {

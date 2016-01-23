@@ -69,11 +69,11 @@ class StreamTextIteratorTest extends PHPUnit_Framework_TestCase {
         $this->l = mb_strlen($this->tmp, $encoding);
         $this->encoding = $encoding;
     }
-    protected function _d($d) {
-        ob_start();
-        var_dump($d);
-        $e = ob_get_clean();
-        fwrite(STDOUT, $e);
-//        fwrite(STDERR, $e);
-    }
+//    protected function _d($d) {
+//        ob_start();
+//        var_dump($d);
+//        $e = ob_get_clean();
+//        fwrite(STDOUT, $e);
+////        fwrite(STDERR, $e);
+//    }
 }

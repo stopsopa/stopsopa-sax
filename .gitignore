@@ -8,3 +8,4 @@ vendor
 /composer.phar
 /coveralls.phar
 /build/logs
+/xdebug/profiles

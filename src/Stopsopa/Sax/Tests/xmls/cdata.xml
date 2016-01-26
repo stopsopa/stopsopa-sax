@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<note>
+    <body>Don't forget me this weekend!</body>
+    <test>
+        <div>
+            <![CDATA[
+You will see this in the document
+and can use reserved characters like
+< > & "
+]]></div>
+        <span>test span</span>
+        <div>
+
+            <![CDATA[
+You will see this in the document
+and can use reserved characters <coś tam coś tam>like
+<b>bold</b>
+< > & "
+]]>
+        </div>
+        <span>another span</span>
+        <div:test>
+
+            <![CDATA[]]>
+        </div:test>
+        <span>jeszcze jeden</span>
+        <div>
+            <span>zagnieżdżony</span>
+            <div>
+                <![CDATA[test ]>]]>
+
+            </div>
+        </div>
+    </test>
+</note>

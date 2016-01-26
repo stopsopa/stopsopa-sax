@@ -57,13 +57,17 @@ class StreamTextIterator {
             $this->mode = static::MODE_FILE;
         }
     }
-    public function initialize($data, $encoding = 'utf8', $chunk = 1024) {
+    public function initialize($source, $encoding = 'utf8', $chunk = null) {
+
+        if (is_null($chunk)) {
+            $chunk = 1024;
+        }
 
         if ($chunk < 20) {
             $chunk = 20;
         }
 
-        $this->file = $data;
+        $this->file = $source;
 
         $this->encoding = $encoding;
 
@@ -76,13 +80,13 @@ class StreamTextIterator {
 
         if ($this->mode === static::MODE_FILE) { // file mode
 
-            $this->handler = fopen($data, 'rb');
+            $this->handler = fopen($source, 'rb');
         }
         else { // string mode
 
             $this->handler = fopen('php://temp', 'r+');
 
-            fwrite($this->handler, $data);
+            fwrite($this->handler, $source);
         }
 
         $this->reset();
@@ -116,7 +120,6 @@ class StreamTextIterator {
                 $tmp = $this->_chunk();
 
                 if ($tmp) {
-
                     $this->tmp .= $tmp;
                 }
             }

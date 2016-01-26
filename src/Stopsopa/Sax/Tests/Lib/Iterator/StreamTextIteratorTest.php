@@ -32,7 +32,7 @@ class StreamTextIteratorTest extends PHPUnit_Framework_TestCase {
 
         foreach ($this->range as $chunk) {
 
-            $this->_d('file   : '.$chunk.' : '.$file);
+            $this->_d('file   : '.$chunk.' : '.pathinfo($file, PATHINFO_BASENAME));
 
             $iter->initialize($file, 'utf-8', $chunk);
 
@@ -54,7 +54,7 @@ class StreamTextIteratorTest extends PHPUnit_Framework_TestCase {
 
         foreach ($this->range as $chunk) {
 
-            $this->_d('string : '.$chunk.' : '.$file);
+            $this->_d('string : '.$chunk.' : '.pathinfo($file, PATHINFO_BASENAME));
 
             $iter->initialize(file_get_contents($file), 'utf-8', $chunk);
 

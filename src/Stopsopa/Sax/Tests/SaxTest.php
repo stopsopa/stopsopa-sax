@@ -20,7 +20,9 @@ end;
 //        $this->assertEquals('value', $i->doSomething());
 //    }
     public function testTest() {
-        $i  = new Sax($this->xml);
+//        $i  = new Sax($this->xml, function () {
+//
+//        });
 
 //        foreach ($i as $d) {
 //            fwrite(STDOUT, '< '.$d . " >");

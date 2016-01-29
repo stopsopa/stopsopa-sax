@@ -5,28 +5,37 @@ namespace Stopsopa\Sax\Tests;
 use Stopsopa\Sax\Sax;
 
 class SaxTest extends \PHPUnit_Framework_TestCase {
-    protected $xml = <<<end
-  <?xml version="1.0" encoding="UTF-8"?>
+
+    public function testSimpleXml() {
+        $data = <<<eos
+      <?xml version="1.0" encoding="UTF-8"?>
 <note>
 	<to>Tove</to>
 	<from>Jani</from>
-	<heading>Reminder</heading>
-	<body>Don't forget me this weekend!</body>
+	<heading>Remiąćęńółnder</heading>
+	<bo ą ąśżźćęół dy>Don't
+	forget me this weekend!</body>
 </note>
-end;
 
-//    public function testTest() {
-//        $i = new Sax($this->xml);
-//        $this->assertEquals('value', $i->doSomething());
-//    }
-    public function testTest() {
-//        $i  = new Sax($this->xml, function () {
-//
-//        });
+<koniec>
 
-//        foreach ($i as $d) {
-//            fwrite(STDOUT, '< '.$d . " >");
-//        }
-        $this->assertEquals('', '');
+eos;
+        $types = json_decode('["s","t","s","t","s","t","d","t","s","t","d","t","s","t","d","t","s","t","d","t","s","t","s","t","s"]', true);
+
+        $k  = new Sax($data, array(
+            'mode' => Sax::MODE_STRING
+        ));
+
+        $t = '';
+
+        $i = 0;
+        foreach ($k as $d) {
+            $t .= $d['data'];
+            $this->assertSame($d['type'], $types[$i]);
+            $i += 1;
+        }
+
+        // compare entire initial string with mounted through iteration
+        $this->assertSame($data, $t);
     }
 }

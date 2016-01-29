@@ -45,6 +45,8 @@ class StreamTextIterator {
      */
     protected $pos;
 
+    protected $last;
+
     /**
      * StreamTextIterator constructor.
      * @param null $mode - default MODE_FILE
@@ -137,9 +139,14 @@ class StreamTextIterator {
 
                 $this->checkpoint += $len;
 
-                return $ret;
+                return $this->last = $ret;
             }
         }
+
+        return $this->last = null;
+    }
+    public function last() {
+        return $this->last;
     }
     protected function _chunk() {
 

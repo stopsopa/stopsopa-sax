@@ -123,14 +123,12 @@ eos;
         foreach ($sax as $d) {
             $t .= $d['raw'];
 
-            if (!json_encode($d) || !json_encode($check[$i])) {
                 $p = print_r($i, true);
                 fwrite(STDOUT, "--> $p\n");
                 $p = print_r($d, true);
                 fwrite(STDOUT, "--> $p\n");
                 $p = print_r($check[$i], true);
                 fwrite(STDOUT, "--> $p\n");
-            }
             $this->assertSame(json_encode($d), json_encode($check[$i]));
             $i += 1;
 

@@ -3,6 +3,7 @@
 namespace Stopsopa\Sax\Tests;
 
 use Stopsopa\Sax\Sax;
+use Exception;
 
 class SaxTest extends \PHPUnit_Framework_TestCase {
 
@@ -121,14 +122,25 @@ eos;
         $t = '';
         $i = 0;
         foreach ($sax as $d) {
-            $t .= $d['raw'];
-            $this->assertSame(json_encode($d), json_encode($check[$i]));
-            $i += 1;
+            try {
+                $t .= $d['raw'];
+                $this->assertSame(json_encode($d), json_encode($check[$i]));
 
-            // offset test
-            $c1 = mb_substr($data, $d['offset'], 1, 'utf8');
-            $c2 = mb_substr($d['raw'], 0, 1, 'utf8');
-            $this->assertSame($c1, $c2);
+                // offset test
+                $c1 = mb_substr($data, $d['offset'], 1, 'utf8');
+                $c2 = mb_substr($d['raw'], 0, 1, 'utf8');
+                $this->assertSame($c1, $c2);
+            }
+            catch (\Exception $e) {
+
+                $p = print_r($i, true);
+                fwrite(STDOUT, "--> $p\n");
+                $p = print_r($c1, true);
+                fwrite(STDOUT, "--> $p\n");
+                $p = print_r($c2, true);
+                fwrite(STDOUT, "--> $p\n");
+            }
+            $i += 1;
         }
 
         // raw field test

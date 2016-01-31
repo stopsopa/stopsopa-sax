@@ -6,6 +6,11 @@ use Iterator;
 use Stopsopa\Sax\Exceptions\SaxException;
 use Stopsopa\Sax\Lib\Iterator\StreamTextIterator;
 
+/**
+ * Class Sax
+ * @package Stopsopa\Sax
+ * 160000 tags (3.7mb file size) in 20 sec on vagrant (host i7, ssd disc), hmmm - acceptable
+ */
 class Sax implements Iterator
 {
     const F_SPACES = 's';
@@ -17,8 +22,8 @@ class Sax implements Iterator
     const MODE_STRING = 2;
 
     protected $iterator;
-    protected $event;
     protected $key;
+    protected $offset;
 
     protected $detectedState;
 
@@ -31,9 +36,11 @@ class Sax implements Iterator
     protected $cdata_end_2;
     protected $cdata_end_3;
 
+    protected $options;
+
     public function __construct($source, $options = array())
     {
-        $options = array_merge(array(
+        $this->options = $options = array_merge(array(
             'encoding' => 'utf8',
             'chunk' => null,
             'mode' => null
@@ -81,7 +88,7 @@ class Sax implements Iterator
 
     public function current()
     {
-        if ($this->cache) {
+        if (is_array($this->cache)) {
             return $this->cache;
         }
     }
@@ -89,6 +96,16 @@ class Sax implements Iterator
     public function next()
     {
         $this->c = 0;
+
+        $this->offset = 0;
+        if ($this->key) {
+            if ($this->_getChar()) {
+                $this->offset = $this->key - 1;
+            }
+            else {
+                $this->offset = $this->key;
+            }
+        }
 
         $this->cache = '';
 
@@ -117,10 +134,16 @@ class Sax implements Iterator
         }
 
         if (is_string($this->cache) && strlen($this->cache) > 0) {
+
             $this->cache = array(
                 'type' => $this->detectedState,
-                'data' => $this->cache
+                'raw' => $this->cache
             );
+
+            if (in_array($this->detectedState, array(static::F_TAG, static::F_CDATA))) {
+                $this->cache['data'] = $this->_extractData($this->cache, $this->detectedState);
+            }
+
         }
         else {
             $this->cache = null;
@@ -172,7 +195,8 @@ class Sax implements Iterator
 
                 $this->cache = array(
                     'type' => static::F_DATA,
-                    'data' => $this->cache
+                    'raw' => $this->cache,
+                    'offset' => $this->offset
                 );
 
                 return true;
@@ -251,7 +275,9 @@ class Sax implements Iterator
 
                 $this->cache = array(
                     'type' => static::F_TAG,
-                    'data' => $this->cache
+                    'raw' => $this->cache,
+                    'data' => $this->_extractData($this->cache, static::F_TAG),
+                    'offset' => $this->offset
                 );
 
                 return true;
@@ -276,7 +302,9 @@ class Sax implements Iterator
 
                 $this->cache = array(
                     'type' => static::F_CDATA,
-                    'data' => $this->cache
+                    'raw' => $this->cache,
+                    'data' => $this->_extractData($this->cache, static::F_CDATA),
+                    'offset' => $this->offset
                 );
 
                 return true;
@@ -299,14 +327,15 @@ class Sax implements Iterator
 
         $this->cache = array(
             'type' => static::F_SPACES,
-            'data' => $this->cache
+            'raw' => $this->cache,
+            'offset' => $this->offset
         );
 
         return true;
     }
     public function key()
     {
-        return $this->key;
+        return $this->offset;
     }
     public function valid()
     {
@@ -325,5 +354,95 @@ class Sax implements Iterator
     }
     protected function _isWhiteChar(&$s) {
         return $this->_isSpace($s) || $this->_isNewLine($s);
+    }
+    protected function _extractData(&$data, $type) {
+
+        switch ($type) {
+            case static::F_TAG:
+
+                if ($data[1] === '/') { // closing tag
+                    return array(
+                        'type' => 'closing',
+                        'name' => mb_substr($data, 2, -1)
+                    );
+                }
+
+                // opening tag
+                $d  = array(
+                    'type' => 'opening'
+                );
+
+                preg_match('#^<\s*([^\s>"\']*)(?:\s+(.*))?#is', $data, $m);
+
+                $d['name'] = '';
+                if (!empty($m[1])) {
+                    $d['name'] = $m[1];
+                }
+
+                $d['attr'] = array();
+                if (!empty($m[2])) {
+
+                    preg_match_all('#\s([a-z0-9_\-:\?]+)(=([\'"])([^\\3]*?)\\3)?#i', $m[0], $attrs);
+
+                    if (isset($attrs[0]) && is_array($attrs[0])) {
+
+                        $d['attr'] = array();
+
+                        foreach ($attrs[0] as $attr) {
+                            if ($attr[0] !== '<') {
+                                $name = null;
+                                $value = null;
+                                if (strpos($attr, '=') !== false) {
+                                    preg_match('#([^\s]+)=([\'"])([^\\2]*?)\\2#is', $attr, $mm);
+                                    if (!empty($mm[1])) {
+                                        $name = $mm[1];
+                                    }
+                                    if (!empty($mm[3])) {
+                                        $value = $mm[3];
+                                    }
+                                }
+                                else {
+                                    $name = trim($attr);
+                                }
+
+                                $name = trim($name, "/>\n\r ");
+                                if (!$name) {
+                                    continue;
+                                }
+
+                                if (isset($d['attr'][$name])) {
+                                    if (is_array($d['attr'][$name])) {
+                                        $d['attr'][$name][] = $value;
+                                    }
+                                    else {
+
+                                        $d['attr'][$name] = array(
+                                            $d['attr'][$name],
+                                            $value
+                                        );
+                                    }
+                                }
+                                else {
+                                    $d['attr'][$name] = $value;
+                                }
+
+                            }
+                            $d;
+                        }
+                    }
+                }
+
+                // check if tag is empty
+                $data = rtrim($data, '>');
+                $l = strlen($data);
+                $data = rtrim($data, '/');
+                if ($l !== strlen($data)) {
+                    $d['type'] = 'empty';
+                }
+
+                return $d;
+            case static::F_CDATA:
+                return mb_substr($data, 9, -3, $this->options['encoding']);
+        }
     }
 }

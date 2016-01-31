@@ -123,11 +123,11 @@ eos;
         foreach ($sax as $d) {
             $t .= $d['raw'];
 
-                $p = print_r($i, true);
+                $p = $this->_var_dump($i, true);
                 fwrite(STDOUT, "--> $p\n");
-                $p = print_r($d, true);
+                $p = $this->_var_dump($d, true);
                 fwrite(STDOUT, "--> $p\n");
-                $p = print_r($check[$i], true);
+                $p = $this->_var_dump($check[$i], true);
                 fwrite(STDOUT, "--> $p\n");
             $this->assertSame(json_encode($d), json_encode($check[$i]));
             $i += 1;
@@ -143,5 +143,10 @@ eos;
         // raw field test
         // compare entire initial string with mounted through iteration
         $this->assertSame($data, $t);
+    }
+    protected function _var_dump($d) {
+        ob_start();
+        var_dump($d);
+        return ob_get_clean();
     }
 }

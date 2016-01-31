@@ -122,21 +122,21 @@ eos;
         $i = 0;
         foreach ($sax as $d) {
             $t .= $d['raw'];
+
+            if (!json_encode($d) || !json_encode($check[$i])) {
+                $p = print_r($i, true);
+                fwrite(STDOUT, "--> $p\n");
+                $p = print_r($d, true);
+                fwrite(STDOUT, "--> $p\n");
+                $p = print_r($check[$i], true);
+                fwrite(STDOUT, "--> $p\n");
+            }
             $this->assertSame(json_encode($d), json_encode($check[$i]));
             $i += 1;
 
             // offset test
             $c1 = mb_substr($data, $d['offset'], 1, 'utf8');
             $c2 = mb_substr($d['raw'], 0, 1, 'utf8');
-
-            if (!$c1 || !$c2) {
-                $p = print_r($i, true);
-                fwrite(STDOUT, "--> $p\n");
-                $p = print_r($c1, true);
-                fwrite(STDOUT, "--> $p\n");
-                $p = print_r($c2, true);
-                fwrite(STDOUT, "--> $p\n");
-            }
 
 
             $this->assertSame($c1, $c2);

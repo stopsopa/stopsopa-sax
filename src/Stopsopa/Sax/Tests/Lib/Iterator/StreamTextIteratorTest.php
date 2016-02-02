@@ -88,6 +88,5 @@ class StreamTextIteratorTest extends PHPUnit_Framework_TestCase {
         var_dump($d);
         $e = ob_get_clean();
         fwrite(STDOUT, $e);
-//        fwrite(STDERR, $e);
     }
 }

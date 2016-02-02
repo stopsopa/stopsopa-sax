@@ -59,6 +59,14 @@ eos;
 
         $check = json_decode($check, true);
 
+        if (!$check) {
+            $check = str_replace("\r\n", "\\r\\n", json_decode($check, true));
+        }
+
+        if (!$check) {
+            $this->assertNotSame($check, null);
+        }
+
         $data = <<<eos
 <?xml version="1.0" encoding="UTF-8"?>
 <note><div>
@@ -142,26 +150,26 @@ eos;
         // compare entire initial string with mounted through iteration
         $this->assertSame($data, $t);
     }
-    protected function _var_dump($d) {
-        ob_start();
-        var_dump($d);
-        $data = ob_get_clean();
-        return mb_substr($data, 0, $this->_nthOccurrenceInString($data, "\n", 15) ?: 50, 'utf-8')."\n...\n";
-    }
-    protected function _nthOccurrenceInString($str, $char, $nth = 1, $encoding = 'utf-8') {
-
-        $offset = -1;
-
-        while ($nth) {
-            $nth -= 1;
-            if ( ($k = mb_strpos($str, $char, $offset + 1, $encoding)) > -1 ) {
-                $offset = $k;
-            }
-            else {
-                break;
-            }
-        }
-
-        return $offset;
-    }
+//    protected function _var_dump($d) {
+//        ob_start();
+//        var_dump($d);
+//        $data = ob_get_clean();
+//        return mb_substr($data, 0, $this->_nthOccurrenceInString($data, "\n", 15) ?: 50, 'utf-8')."\n...\n";
+//    }
+//    protected function _nthOccurrenceInString($str, $char, $nth = 1, $encoding = 'utf-8') {
+//
+//        $offset = -1;
+//
+//        while ($nth) {
+//            $nth -= 1;
+//            if ( ($k = mb_strpos($str, $char, $offset + 1, $encoding)) > -1 ) {
+//                $offset = $k;
+//            }
+//            else {
+//                break;
+//            }
+//        }
+//
+//        return $offset;
+//    }
 }

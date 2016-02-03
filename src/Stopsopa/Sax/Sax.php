@@ -13,11 +13,11 @@ use Stopsopa\Sax\Lib\Iterator\StreamTextIterator;
  */
 class Sax implements Iterator
 {
-    const F_SPACES = 's';
-    const F_TAG = 't';
-    const F_DATA = 'd';
-    const F_CDATA = 'cd';
-    const F_COMMENT = 'co';
+    const F_SPACES = 1;
+    const F_TAG = 2;
+    const F_DATA = 3;
+    const F_CDATA = 4;
+    const F_COMMENT = 5;
 
     const MODE_FILE = 1;
     const MODE_STRING = 2;
@@ -49,16 +49,22 @@ class Sax implements Iterator
         $this->iterator->initialize($source, $options['encoding'], $options['chunk']);
         $this->rewind();
     }
-    protected function _setChar($c) {
+
+    protected function _setChar($c)
+    {
         $this->cchar = $c;
         return $this;
     }
-    protected function _popChar() {
+
+    protected function _popChar()
+    {
         $k = $this->cchar;
         $this->cchar = false;
         return $k;
     }
-    protected function _getChar() {
+
+    protected function _getChar()
+    {
         return $this->cchar;
     }
 
@@ -86,7 +92,9 @@ class Sax implements Iterator
 
         $this->next();
     }
-    protected function _resetCheck() {
+
+    protected function _resetCheck()
+    {
         $this->check = explode('|', str_repeat('|', 7));
     }
 
@@ -105,8 +113,7 @@ class Sax implements Iterator
         if ($this->key) {
             if ($this->_getChar()) {
                 $this->offset = $this->key - 1;
-            }
-            else {
+            } else {
                 $this->offset = $this->key;
             }
         }
@@ -148,8 +155,7 @@ class Sax implements Iterator
                 $this->cache['data'] = $this->_extractData($this->cache, $this->detectedState);
             }
 
-        }
-        else {
+        } else {
             $this->cache = null;
 
             $this->c = null;
@@ -162,7 +168,7 @@ class Sax implements Iterator
      * @param $t
      * @return false - continue, true - break
      */
-    protected function _cycle($t)
+    protected function _cycle(&$t)
     {
         if ($this->c === 0) {
 
@@ -195,36 +201,100 @@ class Sax implements Iterator
             return false;
         }
 
-        if ($this->detectedState === static::F_DATA) {
-            if ($t === '<') {
 
-                $this->_setChar($t);
+        switch ($this->detectedState) {
 
-                $this->cache = array(
-                    'type' => static::F_DATA,
-                    'raw' => $this->cache,
-                    'offset' => $this->offset
-                );
+            case static::F_DATA:
 
-                return true;
-            }
+                if ($t === '<') {
 
-            $this->c += 1;
-            $this->cache .= $t;
+                    $this->_setChar($t);
 
-            $this->detectedState = static::F_DATA;
+                    $this->cache = array(
+                        'type' => static::F_DATA,
+                        'raw' => $this->cache,
+                        'offset' => $this->offset
+                    );
 
-            return false;
-        }
+                    return true;
+                }
 
-        if ($this->detectedState === static::F_TAG) {
+                $this->c += 1;
+                $this->cache .= $t;
 
-            $this->cache .= $t;
+                $this->detectedState = static::F_DATA;
+
+                return false;
+
+            case static::F_TAG:
+
+                $this->cache .= $t;
 
 //            012345678912
 //            <!---->
 //            <![CDATA[]]>
-            if ($this->c < 13) {
+                if ($this->c < 13) {
+                    if ($t === '>') {
+                        $this->c += 1;
+
+                        $this->cache = array(
+                            'type' => static::F_TAG,
+                            'raw' => $this->cache,
+                            'data' => $this->_extractData($this->cache, static::F_TAG),
+                            'offset' => $this->offset
+                        );
+
+                        return true;
+                    }
+                }
+
+//            <![
+//                from
+//            <![CDATA[]]>
+                if ($this->c < 3) {
+
+                    $this->check[$this->c] = $t;
+                    $this->c += 1;
+
+                    return false;
+                }
+
+                if ($this->c === 3 && $t === '-') {  //  01234567
+//                if (implode('', $this->check) === '<![cdata') {
+                    // this way is little faster
+                    if ($this->check[0] === '<' && $this->check[1] === '!' && $this->check[2] === '-') {
+
+                        $this->c += 1;
+
+                        $this->detectedState = static::F_COMMENT;
+
+                        return false;
+                    }
+                }
+//               CDATA[
+//                from
+//            <![CDATA[]]>
+                if ($this->c < 8) {
+
+                    $this->check[$this->c] = strtolower($t);
+                    $this->c += 1;
+
+                    return false;
+                }
+
+                if ($this->c === 8) {  //  01234567
+//                if (implode('', $this->check) === '<![cdata') {
+                    // this way is little faster
+                    if ($t === '[' && $this->check[0] === '<' && $this->check[1] === '!' && $this->check[2] === '[' && $this->check[3] === 'c' && $this->check[4] === 'd' && $this->check[5] === 'a' && $this->check[6] === 't' && $this->check[7] === 'a') {
+
+                        $this->c += 1;
+
+                        $this->detectedState = static::F_CDATA;
+
+                        return false;
+                    }
+                }
+
                 if ($t === '>') {
                     $this->c += 1;
 
@@ -237,119 +307,57 @@ class Sax implements Iterator
 
                     return true;
                 }
-            }
 
-//            <![
-//                from
-//            <![CDATA[]]>
-            if ($this->c < 3) {
-
-                $this->check[$this->c] = $t;
                 $this->c += 1;
 
                 return false;
-            }
 
-            if ($this->c === 3 && $t === '-') {  //  01234567
-//                if (implode('', $this->check) === '<![cdata') {
-                // this way is little faster
-                if ($this->check[0] === '<' && $this->check[1] === '!' && $this->check[2] === '-') {
+            case static::F_CDATA:
 
-                    $this->c += 1;
+                $this->check[0] = $this->check[1];
+                $this->check[1] = $this->check[2];
+                $this->check[2] = $t;
 
-                    $this->detectedState = static::F_COMMENT;
-
-                    return false;
-                }
-            }
-//               CDATA[
-//                from
-//            <![CDATA[]]>
-            if ($this->c < 8) {
-
-                $this->check[$this->c] = strtolower($t);
                 $this->c += 1;
+                $this->cache .= $t;
+
+                if ($this->check[0] === ']' && $this->check[1] === ']' && $this->check[2] === '>') {
+
+                    $this->cache = array(
+                        'type' => static::F_CDATA,
+                        'raw' => $this->cache,
+                        'data' => $this->_extractData($this->cache, static::F_CDATA),
+                        'offset' => $this->offset
+                    );
+
+                    return true;
+                }
 
                 return false;
-            }
 
-            if ($this->c === 8 && $t === '[') {  //  01234567
-//                if (implode('', $this->check) === '<![cdata') {
-                // this way is little faster
-                if ($this->check[0] === '<' && $this->check[1] === '!' && $this->check[2] === '[' && $this->check[3] === 'c' && $this->check[4] === 'd' && $this->check[5] === 'a' && $this->check[6] === 't' && $this->check[7] === 'a') {
+            case static::F_COMMENT:
 
-                    $this->c += 1;
+                $this->check[0] = $this->check[1];
+                $this->check[1] = $this->check[2];
+                $this->check[2] = $t;
 
-                    $this->detectedState = static::F_CDATA;
-
-                    return false;
-                }
-            }
-
-            if ($t === '>') {
                 $this->c += 1;
+                $this->cache .= $t;
 
-                $this->cache = array(
-                    'type' => static::F_TAG,
-                    'raw' => $this->cache,
-                    'data' => $this->_extractData($this->cache, static::F_TAG),
-                    'offset' => $this->offset
-                );
+                if ($this->check[0] === '-' && $this->check[1] === '-' && $this->check[2] === '>') {
 
-                return true;
-            }
+                    $this->cache = array(
+                        'type' => static::F_COMMENT,
+                        'raw' => $this->cache,
+                        'data' => $this->_extractData($this->cache, static::F_COMMENT),
+                        'offset' => $this->offset
+                    );
 
-            $this->c += 1;
+                    return true;
+                }
 
-            return false;
-        }
+                return false;
 
-        if ($this->detectedState === static::F_CDATA) {
-
-            $this->check[0] = $this->check[1];
-            $this->check[1] = $this->check[2];
-            $this->check[2] = $t;
-
-            $this->c += 1;
-            $this->cache .= $t;
-
-            if ($this->check[0] === ']' && $this->check[1] === ']' && $this->check[2] === '>') {
-
-                $this->cache = array(
-                    'type' => static::F_CDATA,
-                    'raw' => $this->cache,
-                    'data' => $this->_extractData($this->cache, static::F_CDATA),
-                    'offset' => $this->offset
-                );
-
-                return true;
-            }
-
-            return false;
-        }
-
-        if ($this->detectedState === static::F_COMMENT) {
-
-            $this->check[0] = $this->check[1];
-            $this->check[1] = $this->check[2];
-            $this->check[2] = $t;
-
-            $this->c += 1;
-            $this->cache .= $t;
-
-            if ($this->check[0] === '-' && $this->check[1] === '-' && $this->check[2] === '>') {
-
-                $this->cache = array(
-                    'type' => static::F_COMMENT,
-                    'raw' => $this->cache,
-                    'data' => $this->_extractData($this->cache, static::F_COMMENT),
-                    'offset' => $this->offset
-                );
-
-                return true;
-            }
-
-            return false;
         }
 
         if ($this->_isWhiteChar($t)) {
@@ -372,10 +380,12 @@ class Sax implements Iterator
 
         return true;
     }
+
     public function key()
     {
         return $this->offset;
     }
+
     public function valid()
     {
         if ($this->cache) {
@@ -385,16 +395,24 @@ class Sax implements Iterator
 
         return false;
     }
-    protected function _isNewLine(&$s) {
+
+    protected function _isNewLine(&$s)
+    {
         return ($s === "\n") || ($s === "\r");
     }
-    protected function _isSpace(&$s) {
+
+    protected function _isSpace(&$s)
+    {
         return ($s === ' ') || ($s === "\t");
     }
-    protected function _isWhiteChar(&$s) {
+
+    protected function _isWhiteChar(&$s)
+    {
         return $this->_isSpace($s) || $this->_isNewLine($s);
     }
-    protected function _extractData(&$data, $type) {
+
+    protected function _extractData(&$data, $type)
+    {
 
         switch ($type) {
             case static::F_TAG:
@@ -407,7 +425,7 @@ class Sax implements Iterator
                 }
 
                 // opening tag
-                $d  = array(
+                $d = array(
                     'type' => 'opening'
                 );
 
@@ -421,7 +439,8 @@ class Sax implements Iterator
                 $d['attr'] = array();
                 if (!empty($m[2])) {
 
-                    preg_match_all('#\s([a-z0-9_\-:\?]+)(=([\'"])([^\\3]*?)\\3)?#i', $m[0], $attrs);
+//                    preg_match_all('#\s([a-z0-9_\-:\?]+)(=([\'"])([^\\3]*?)\\3)?#i', $m[0], $attrs);
+                    preg_match_all('#\s([^\s]+)(=([\'"])([^\\3]*?)\\3)?#i', $m[0], $attrs);
 
                     if (isset($attrs[0]) && is_array($attrs[0])) {
 
@@ -429,49 +448,53 @@ class Sax implements Iterator
 
                         foreach ($attrs[0] as $attr) {
                             if ($attr[0] !== '<') {
+
                                 $name = null;
                                 $value = null;
-                                if (strpos($attr, '=') !== false) {
-                                    preg_match('#([^\s]+)=([\'"])([^\\2]*?)\\2#is', $attr, $mm);
-                                    if (!empty($mm[1])) {
-                                        $name = $mm[1];
+
+                                $split = mb_split('=', $attr, 2);
+
+                                $name = trim($split[0], '?/> \r\n\t');
+
+                                if (isset($split[1])) {
+
+                                    $value = trim($split[1], '?/> \r\n\t');
+
+                                    switch ($value[0]) {
+                                        case '"':
+                                            $value = trim($value, '"');
+                                            break;
+                                        case "'":
+                                            $value = trim($value, "'");
+                                            break;
                                     }
-                                    if (!empty($mm[3])) {
-                                        $value = $mm[3];
-                                    }
-                                }
-                                else {
-                                    $name = trim($attr);
                                 }
 
-                                $name = trim($name, "/>\n\r ");
                                 if (!$name) {
                                     continue;
                                 }
 
-                                if (isset($d['attr'][$name])) {
+                                if (array_key_exists($name, $d['attr'])) {
                                     if (is_array($d['attr'][$name])) {
                                         $d['attr'][$name][] = $value;
-                                    }
-                                    else {
+                                    } else {
 
                                         $d['attr'][$name] = array(
                                             $d['attr'][$name],
                                             $value
                                         );
                                     }
-                                }
-                                else {
+                                } else {
                                     $d['attr'][$name] = $value;
                                 }
-
+                                $aaaa = $d['attr'];
+                                $aaaa = $aaaa;
                             }
-                            $d;
                         }
                     }
                 }
 
-                // check if tag is empty
+                // checking if tag is empty
                 $data = rtrim($data, '>');
                 $l = strlen($data);
                 $data = rtrim($data, '/');

@@ -16,7 +16,8 @@ class Sax implements Iterator
     const F_SPACES = 's';
     const F_TAG = 't';
     const F_DATA = 'd';
-    const F_CDATA = 'c';
+    const F_CDATA = 'cd';
+    const F_COMMENT = 'co';
 
     const MODE_FILE = 1;
     const MODE_STRING = 2;
@@ -32,9 +33,7 @@ class Sax implements Iterator
 
     protected $c;
 
-    protected $cdata_end_1;
-    protected $cdata_end_2;
-    protected $cdata_end_3;
+    protected $check;
 
     protected $options;
 
@@ -83,7 +82,12 @@ class Sax implements Iterator
 
         $this->detectedState = self::F_SPACES;
 
+        $this->_resetCheck();
+
         $this->next();
+    }
+    protected function _resetCheck() {
+        $this->check = explode('|', str_repeat('|', 7));
     }
 
     public function current()
@@ -109,7 +113,7 @@ class Sax implements Iterator
 
         $this->cache = '';
 
-        $this->cdata_end_1 = $this->cdata_end_2 = $this->cdata_end_3 = null;
+        $this->check[0] = '';
 
         $this->detectedState = null;
 
@@ -158,11 +162,14 @@ class Sax implements Iterator
      * @param $t
      * @return false - continue, true - break
      */
-    protected function _cycle(&$t)
+    protected function _cycle($t)
     {
         if ($this->c === 0) {
 
             if ($t === '<') {
+
+                $this->check[$this->c] = $t;
+
                 $this->c += 1;
                 $this->cache .= $t;
 
@@ -211,67 +218,76 @@ class Sax implements Iterator
         }
 
         if ($this->detectedState === static::F_TAG) {
-            if ($this->c === 1 && $t === '!') {
+
+            $this->cache .= $t;
+
+//            012345678912
+//            <!---->
+//            <![CDATA[]]>
+            if ($this->c < 13) {
+                if ($t === '>') {
+                    $this->c += 1;
+
+                    $this->cache = array(
+                        'type' => static::F_TAG,
+                        'raw' => $this->cache,
+                        'data' => $this->_extractData($this->cache, static::F_TAG),
+                        'offset' => $this->offset
+                    );
+
+                    return true;
+                }
+            }
+
+//            <![
+//                from
+//            <![CDATA[]]>
+            if ($this->c < 3) {
+
+                $this->check[$this->c] = $t;
                 $this->c += 1;
-                $this->cache .= $t;
 
                 return false;
             }
 
-            if ($this->c === 2 && $t === '[') {
+            if ($this->c === 3 && $t === '-') {  //  01234567
+//                if (implode('', $this->check) === '<![cdata') {
+                // this way is little faster
+                if ($this->check[0] === '<' && $this->check[1] === '!' && $this->check[2] === '-') {
+
+                    $this->c += 1;
+
+                    $this->detectedState = static::F_COMMENT;
+
+                    return false;
+                }
+            }
+//               CDATA[
+//                from
+//            <![CDATA[]]>
+            if ($this->c < 8) {
+
+                $this->check[$this->c] = strtolower($t);
                 $this->c += 1;
-                $this->cache .= $t;
 
                 return false;
             }
 
-            if ($this->c === 3 && strtolower($t) === 'c') {
-                $this->c += 1;
-                $this->cache .= $t;
+            if ($this->c === 8 && $t === '[') {  //  01234567
+//                if (implode('', $this->check) === '<![cdata') {
+                // this way is little faster
+                if ($this->check[0] === '<' && $this->check[1] === '!' && $this->check[2] === '[' && $this->check[3] === 'c' && $this->check[4] === 'd' && $this->check[5] === 'a' && $this->check[6] === 't' && $this->check[7] === 'a') {
 
-                return false;
-            }
+                    $this->c += 1;
 
-            if ($this->c === 4 && strtolower($t) === 'd') {
-                $this->c += 1;
-                $this->cache .= $t;
+                    $this->detectedState = static::F_CDATA;
 
-                return false;
-            }
-
-            if ($this->c === 5 && strtolower($t) === 'a') {
-                $this->c += 1;
-                $this->cache .= $t;
-
-                return false;
-            }
-
-            if ($this->c === 6 && strtolower($t) === 't') {
-                $this->c += 1;
-                $this->cache .= $t;
-
-                return false;
-            }
-
-            if ($this->c === 7 && strtolower($t) === 'a') {
-                $this->c += 1;
-                $this->cache .= $t;
-
-                return false;
-            }
-
-            if ($this->c === 8 && $t === '[') {
-                $this->c += 1;
-                $this->cache .= $t;
-
-                $this->detectedState = static::F_CDATA;
-
-                return false;
+                    return false;
+                }
             }
 
             if ($t === '>') {
                 $this->c += 1;
-                $this->cache .= $t;
 
                 $this->cache = array(
                     'type' => static::F_TAG,
@@ -284,26 +300,49 @@ class Sax implements Iterator
             }
 
             $this->c += 1;
-            $this->cache .= $t;
 
             return false;
         }
 
         if ($this->detectedState === static::F_CDATA) {
 
-            $this->cdata_end_1 = $this->cdata_end_2;
-            $this->cdata_end_2 = $this->cdata_end_3;
-            $this->cdata_end_3 = $t;
+            $this->check[0] = $this->check[1];
+            $this->check[1] = $this->check[2];
+            $this->check[2] = $t;
 
             $this->c += 1;
             $this->cache .= $t;
 
-            if ($this->cdata_end_1 === ']' && $this->cdata_end_2 === ']' && $this->cdata_end_3 === '>') {
+            if ($this->check[0] === ']' && $this->check[1] === ']' && $this->check[2] === '>') {
 
                 $this->cache = array(
                     'type' => static::F_CDATA,
                     'raw' => $this->cache,
                     'data' => $this->_extractData($this->cache, static::F_CDATA),
+                    'offset' => $this->offset
+                );
+
+                return true;
+            }
+
+            return false;
+        }
+
+        if ($this->detectedState === static::F_COMMENT) {
+
+            $this->check[0] = $this->check[1];
+            $this->check[1] = $this->check[2];
+            $this->check[2] = $t;
+
+            $this->c += 1;
+            $this->cache .= $t;
+
+            if ($this->check[0] === '-' && $this->check[1] === '-' && $this->check[2] === '>') {
+
+                $this->cache = array(
+                    'type' => static::F_COMMENT,
+                    'raw' => $this->cache,
+                    'data' => $this->_extractData($this->cache, static::F_COMMENT),
                     'offset' => $this->offset
                 );
 
@@ -442,7 +481,13 @@ class Sax implements Iterator
 
                 return $d;
             case static::F_CDATA:
+//                0123456789
+//                <![CDATA[]]>
                 return mb_substr($data, 9, -3, $this->options['encoding']);
+            case static::F_COMMENT:
+//                0123456789
+//                <!--
+                return mb_substr($data, 4, -3, $this->options['encoding']);
         }
     }
 }

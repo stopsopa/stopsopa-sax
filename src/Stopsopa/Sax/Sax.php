@@ -13,11 +13,11 @@ use Stopsopa\Sax\Lib\Iterator\StreamTextIterator;
  */
 class Sax implements Iterator
 {
-    const F_SPACES = 1;
-    const F_TAG = 2;
-    const F_DATA = 3;
-    const F_CDATA = 4;
-    const F_COMMENT = 5;
+    const N_SPACES = 1;
+    const N_TAG = 2;
+    const N_DATA = 3;
+    const N_CDATA = 4;
+    const N_COMMENT = 5;
 
     const MODE_FILE = 1;
     const MODE_STRING = 2;
@@ -86,7 +86,7 @@ class Sax implements Iterator
 
         $this->_popChar();
 
-        $this->detectedState = self::F_SPACES;
+        $this->detectedState = self::N_SPACES;
 
         $this->_resetCheck();
 
@@ -151,7 +151,7 @@ class Sax implements Iterator
                 'raw' => $this->cache
             );
 
-            if (in_array($this->detectedState, array(static::F_TAG, static::F_CDATA))) {
+            if (in_array($this->detectedState, array(static::N_TAG, static::N_CDATA))) {
                 $this->cache['data'] = $this->_extractData($this->cache, $this->detectedState);
             }
 
@@ -179,7 +179,7 @@ class Sax implements Iterator
                 $this->c += 1;
                 $this->cache .= $t;
 
-                $this->detectedState = static::F_TAG;
+                $this->detectedState = static::N_TAG;
 
                 return false;
             }
@@ -188,7 +188,7 @@ class Sax implements Iterator
                 $this->c += 1;
                 $this->cache .= $t;
 
-                $this->detectedState = static::F_SPACES;
+                $this->detectedState = static::N_SPACES;
 
                 return false;
             }
@@ -196,7 +196,7 @@ class Sax implements Iterator
             $this->c += 1;
             $this->cache .= $t;
 
-            $this->detectedState = static::F_DATA;
+            $this->detectedState = static::N_DATA;
 
             return false;
         }
@@ -204,14 +204,14 @@ class Sax implements Iterator
 
         switch ($this->detectedState) {
 
-            case static::F_DATA:
+            case static::N_DATA:
 
                 if ($t === '<') {
 
                     $this->_setChar($t);
 
                     $this->cache = array(
-                        'type' => static::F_DATA,
+                        'type' => static::N_DATA,
                         'raw' => $this->cache,
                         'offset' => $this->offset
                     );
@@ -222,11 +222,11 @@ class Sax implements Iterator
                 $this->c += 1;
                 $this->cache .= $t;
 
-                $this->detectedState = static::F_DATA;
+                $this->detectedState = static::N_DATA;
 
                 return false;
 
-            case static::F_TAG:
+            case static::N_TAG:
 
                 $this->cache .= $t;
 
@@ -238,9 +238,9 @@ class Sax implements Iterator
                         $this->c += 1;
 
                         $this->cache = array(
-                            'type' => static::F_TAG,
+                            'type' => static::N_TAG,
                             'raw' => $this->cache,
-                            'data' => $this->_extractData($this->cache, static::F_TAG),
+                            'data' => $this->_extractData($this->cache, static::N_TAG),
                             'offset' => $this->offset
                         );
 
@@ -266,7 +266,7 @@ class Sax implements Iterator
 
                         $this->c += 1;
 
-                        $this->detectedState = static::F_COMMENT;
+                        $this->detectedState = static::N_COMMENT;
 
                         return false;
                     }
@@ -289,7 +289,7 @@ class Sax implements Iterator
 
                         $this->c += 1;
 
-                        $this->detectedState = static::F_CDATA;
+                        $this->detectedState = static::N_CDATA;
 
                         return false;
                     }
@@ -299,9 +299,9 @@ class Sax implements Iterator
                     $this->c += 1;
 
                     $this->cache = array(
-                        'type' => static::F_TAG,
+                        'type' => static::N_TAG,
                         'raw' => $this->cache,
-                        'data' => $this->_extractData($this->cache, static::F_TAG),
+                        'data' => $this->_extractData($this->cache, static::N_TAG),
                         'offset' => $this->offset
                     );
 
@@ -312,7 +312,7 @@ class Sax implements Iterator
 
                 return false;
 
-            case static::F_CDATA:
+            case static::N_CDATA:
 
                 $this->check[0] = $this->check[1];
                 $this->check[1] = $this->check[2];
@@ -324,9 +324,9 @@ class Sax implements Iterator
                 if ($this->check[0] === ']' && $this->check[1] === ']' && $this->check[2] === '>') {
 
                     $this->cache = array(
-                        'type' => static::F_CDATA,
+                        'type' => static::N_CDATA,
                         'raw' => $this->cache,
-                        'data' => $this->_extractData($this->cache, static::F_CDATA),
+                        'data' => $this->_extractData($this->cache, static::N_CDATA),
                         'offset' => $this->offset
                     );
 
@@ -335,7 +335,7 @@ class Sax implements Iterator
 
                 return false;
 
-            case static::F_COMMENT:
+            case static::N_COMMENT:
 
                 $this->check[0] = $this->check[1];
                 $this->check[1] = $this->check[2];
@@ -347,9 +347,9 @@ class Sax implements Iterator
                 if ($this->check[0] === '-' && $this->check[1] === '-' && $this->check[2] === '>') {
 
                     $this->cache = array(
-                        'type' => static::F_COMMENT,
+                        'type' => static::N_COMMENT,
                         'raw' => $this->cache,
-                        'data' => $this->_extractData($this->cache, static::F_COMMENT),
+                        'data' => $this->_extractData($this->cache, static::N_COMMENT),
                         'offset' => $this->offset
                     );
 
@@ -365,7 +365,7 @@ class Sax implements Iterator
             $this->c += 1;
             $this->cache .= $t;
 
-            $this->detectedState = static::F_SPACES;
+            $this->detectedState = static::N_SPACES;
 
             return false;
         }
@@ -373,7 +373,7 @@ class Sax implements Iterator
         $this->_setChar($t);
 
         $this->cache = array(
-            'type' => static::F_SPACES,
+            'type' => static::N_SPACES,
             'raw' => $this->cache,
             'offset' => $this->offset
         );
@@ -415,7 +415,7 @@ class Sax implements Iterator
     {
 
         switch ($type) {
-            case static::F_TAG:
+            case static::N_TAG:
 
                 if ($data[1] === '/') { // closing tag
                     return array(
@@ -503,11 +503,11 @@ class Sax implements Iterator
                 }
 
                 return $d;
-            case static::F_CDATA:
+            case static::N_CDATA:
 //                0123456789
 //                <![CDATA[]]>
                 return mb_substr($data, 9, -3, $this->options['encoding']);
-            case static::F_COMMENT:
+            case static::N_COMMENT:
 //                0123456789
 //                <!--
                 return mb_substr($data, 4, -3, $this->options['encoding']);

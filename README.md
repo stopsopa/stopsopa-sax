@@ -2,6 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/stopsopa/stopsopa-sax/badge.svg?branch=master&service=github)](https://coveralls.io/github/stopsopa/stopsopa-sax?branch=master)
 [![Codeship Status for stopsopa/stopsopa-sax](https://codeship.com/projects/0f4debe0-9ec5-0133-8d32-76efcd0f79bd/status?branch=master)](https://codeship.com/projects/127803)
 [![Latest Stable Version](https://poser.pugx.org/stopsopa/sax/v/stable)](https://packagist.org/packages/stopsopa/sax)
+[![License](https://poser.pugx.org/stopsopa/sax/license)](https://packagist.org/packages/stopsopa/sax)
 
 
 <h1>stopsopa/annotations</h1>

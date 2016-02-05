@@ -45,6 +45,12 @@ class Sax implements Iterator
 
     public function __construct($source, $options = array())
     {
+        if ($options === static::MODE_FILE || $options === static::MODE_STRING) {
+            $options = array(
+                'mode' => $options
+            );
+        }
+
         $this->options = $options = array_merge(array(
             'encoding' => 'utf8',
             'chunk' => null,
@@ -431,6 +437,7 @@ class Sax implements Iterator
 
         switch ($type) {
             case static::N_TAG:
+
                 if ($data[1] === '/') { // closing tag
                     return array(
                         'type' => 'closing',
@@ -440,79 +447,74 @@ class Sax implements Iterator
 
                 // opening tag
                 $d = array(
-                    'type' => 'opening'
+                    'type' => 'opening',
+                    'attr' => array()
                 );
 
-                preg_match('#^<\s*([^\s>"\']*)(?:\s+(.*))?#is', $data, $m);
+                $a = &$d['attr'];
 
-                $d['name'] = '';
-                if (!empty($m[1])) {
-                    $d['name'] = $m[1];
-                }
+                $replace = preg_replace_callback('#\s([^\s]+)\s*=\s*([\'"])([^\\2]*?)\\2#s', function ($m) use (&$a) {
+                    if (array_key_exists($m[1], $a)) {
+                        if (is_array($a[$m[1]])) {
+                            $a[$m[1]][] = $m[3];
+                        } else {
+                            $a[$m[1]] = array(
+                                $a[$m[1]],
+                                $m[3]
+                            );
+                        }
+                    } else {
+                        $a[$m[1]] = $m[3];
+                    }
+                    return ' ';
+                }, $data);
 
-                $d['attr'] = array();
-                if (!empty($m[2])) {
+                $replace = preg_replace_callback('#\s([^\s]+)\s*=\s*([^\s]+)#s', function ($m) use (&$a) {
+                    if (array_key_exists($m[1], $a)) {
+                        if (is_array($a[$m[1]])) {
+                            $a[$m[1]][] = $m[2];
+                        } else {
+                            $a[$m[1]] = array(
+                                $a[$m[1]],
+                                $m[2]
+                            );
+                        }
+                    } else {
+                        $a[$m[1]] = $m[2];
+                    }
+                    return ' ';
+                }, $replace);
 
-                    preg_match_all('#\s([^\s]+)(=([\'"])(.*?)[\'"])?#is', $m[0], $attrs);
+                $replace = preg_split('#\s+#s', rtrim(trim($replace, "/ <>\r\n\t"), '?'));
 
-//                    preg_replace_callback ('#\s([^\s]+)(=([\'"])([^\'"]*)[\'"])?#is' , function ($m) {
-//                        $k = '';
-//                    } , $m[0]);
-
-                    if (isset($attrs[0]) && is_array($attrs[0])) {
-
-                        $d['attr'] = array();
-
-                        foreach ($attrs[0] as $attr) {
-                            if ($attr[0] !== '<') {
-
-                                $name = null;
-                                $value = null;
-
-                                $split = mb_split('=', $attr, 2);
-
-                                $name = trim($split[0], '?/> \r\n\t');
-
-                                if (isset($split[1])) {
-
-                                    $value = trim($split[1], '?/> \r\n\t');
-
-                                    switch ($value[0]) {
-                                        case '"':
-                                            $value = trim($value, '"');
-                                            break;
-                                        case "'":
-                                            $value = trim($value, "'");
-                                            break;
-                                    }
-                                }
-
-                                if (!$name) {
-                                    continue;
-                                }
-
-                                if (array_key_exists($name, $d['attr'])) {
-                                    if (is_array($d['attr'][$name])) {
-                                        $d['attr'][$name][] = $value;
-                                    } else {
-
-                                        $d['attr'][$name] = array(
-                                            $d['attr'][$name],
-                                            $value
-                                        );
-                                    }
-                                } else {
-                                    $d['attr'][$name] = $value;
-                                }
+                for ( $i = 1, $l = count($replace) ; $i < $l ; $i += 1 ) {
+                    $m = &$replace[$i];
+                    $m = trim($m);
+                    if ($m) {
+                        if (array_key_exists($m, $a)) {
+                            if (is_array($a[$m])) {
+                                $a[$m][] = null;
+                            } else {
+                                $a[$m] = array(
+                                    $a[$m],
+                                    null
+                                );
                             }
+                        } else {
+                            $a[$m] = null;
                         }
                     }
                 }
 
+                $d['name'] = '';
+                if (!empty($replace[0])) {
+                    $d['name'] = $replace[0];
+                }
+
                 // checking if tag is empty
-                $data = rtrim($data, '>');
+                $data = rtrim($data, ">\r\n\t ");
                 $l = strlen($data);
-                $data = rtrim($data, '/');
+                $data = rtrim($data, "/");
                 if ($l !== strlen($data)) {
                     $d['type'] = 'empty';
                 }

@@ -10,6 +10,9 @@ class SaxTest extends \PHPUnit_Framework_TestCase {
         $data = <<<eos
       <?xml version="1.0" encoding="UTF-8"?>
 <note>
+    <span>
+    data
+    </span>
 	<to>Tove</to>
 	<from>Jani</from>
 	<heading>Remiąćęńółnder</heading>
@@ -21,7 +24,7 @@ class SaxTest extends \PHPUnit_Framework_TestCase {
 <koniec>
 <!-- jfdsk <!-- -- -->
 eos;
-        $types = json_decode('[1,2,1,2,1,2,3,2,1,2,3,2,1,2,3,2,1,2,3,2,1,5,1,2,1,5,1,2,1,5]', true);
+        $types = json_decode('[1,2,1,2,1,2,3,2,1,2,3,2,1,2,3,2,1,2,3,2,1,2,3,2,1,5,1,2,1,5,1,2,1,5,1]', true);
 
         $sax = new Sax($data, array(
             'mode' => Sax::MODE_STRING
@@ -88,7 +91,7 @@ and can use reserved characters <coś tam coś tam>like
 < > & "
 ]]>
         <bo a b c def="xyz" j:i k:l='test' empty="" key=value a b ghi jkl ą="war=tość" ę>
-        inside
+        ins>ide
         </bo>
         <bo a b c def="xyz" j:i k:l='test' empty="" key=value a b ghi jkl ą="war=tość" ę></bo>
         <bo a b c def="xyz" j:i k:l='test' empty="" key=value a b ghi jkl ą="war=tość"/>

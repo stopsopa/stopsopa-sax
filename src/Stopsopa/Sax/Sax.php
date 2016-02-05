@@ -19,6 +19,12 @@ class Sax implements Iterator
     const N_CDATA = 4;
     const N_COMMENT = 5;
 
+//    const N_SPACES = 's';
+//    const N_TAG = 't';
+//    const N_DATA = 'd';
+//    const N_CDATA = 'cd';
+//    const N_COMMENT = 'co';
+
     const MODE_FILE = 1;
     const MODE_STRING = 2;
 
@@ -146,14 +152,13 @@ class Sax implements Iterator
 
         if (is_string($this->cache) && strlen($this->cache) > 0) {
 
+            // if something come to this place, that mean it is some kind unclosed tag (tag, comment, or cdata)
+            // return this as data
             $this->cache = array(
-                'type' => $this->detectedState,
-                'raw' => $this->cache
+                'type' => trim($this->cache) ? static::N_DATA : static::N_SPACES,
+                'raw' => $this->cache,
+                'offset' => $this->offset
             );
-
-            if (in_array($this->detectedState, array(static::N_TAG, static::N_CDATA))) {
-                $this->cache['data'] = $this->_extractData($this->cache, $this->detectedState);
-            }
 
         } else {
             $this->cache = null;
@@ -370,6 +375,16 @@ class Sax implements Iterator
             return false;
         }
 
+        if ($t !== '<') {
+
+            $this->c += 1;
+            $this->cache .= $t;
+
+            $this->detectedState = static::N_DATA;
+
+            return false;
+        }
+
         $this->_setChar($t);
 
         $this->cache = array(
@@ -411,12 +426,11 @@ class Sax implements Iterator
         return $this->_isSpace($s) || $this->_isNewLine($s);
     }
 
-    protected function _extractData(&$data, $type)
+    protected function _extractData($data, $type)
     {
 
         switch ($type) {
             case static::N_TAG:
-
                 if ($data[1] === '/') { // closing tag
                     return array(
                         'type' => 'closing',
@@ -439,8 +453,11 @@ class Sax implements Iterator
                 $d['attr'] = array();
                 if (!empty($m[2])) {
 
-//                    preg_match_all('#\s([a-z0-9_\-:\?]+)(=([\'"])([^\\3]*?)\\3)?#i', $m[0], $attrs);
-                    preg_match_all('#\s([^\s]+)(=([\'"])([^\\3]*?)\\3)?#i', $m[0], $attrs);
+                    preg_match_all('#\s([^\s]+)(=([\'"])(.*?)[\'"])?#is', $m[0], $attrs);
+
+//                    preg_replace_callback ('#\s([^\s]+)(=([\'"])([^\'"]*)[\'"])?#is' , function ($m) {
+//                        $k = '';
+//                    } , $m[0]);
 
                     if (isset($attrs[0]) && is_array($attrs[0])) {
 
@@ -487,8 +504,6 @@ class Sax implements Iterator
                                 } else {
                                     $d['attr'][$name] = $value;
                                 }
-                                $aaaa = $d['attr'];
-                                $aaaa = $aaaa;
                             }
                         }
                     }

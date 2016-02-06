@@ -86,9 +86,6 @@ class StreamTextIterator {
             if (!file_exists($source)) {
                 throw new Exception("File '$source' doesn't exists");
             }
-            else {
-                die('wtf?');
-            }
 
             $this->handler = fopen($source, 'rb');
         }

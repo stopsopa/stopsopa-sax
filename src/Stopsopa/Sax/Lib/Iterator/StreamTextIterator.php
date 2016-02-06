@@ -1,6 +1,7 @@
 <?php
 
 namespace Stopsopa\Sax\Lib\Iterator;
+use Exception;
 
 class StreamTextIterator {
     const MODE_FILE = 1;
@@ -82,6 +83,13 @@ class StreamTextIterator {
 
         if ($this->mode === static::MODE_FILE) { // file mode
 
+            if (!file_exists($source)) {
+                throw new Exception("File '$source' doesn't exists");
+            }
+            else {
+                die('wtf?');
+            }
+
             $this->handler = fopen($source, 'rb');
         }
         else { // string mode
@@ -95,7 +103,9 @@ class StreamTextIterator {
     }
     public function __destruct()
     {
-        fclose($this->handler);
+        if ($this->handler) {
+            fclose($this->handler);
+        }
     }
     public function reset()
     {

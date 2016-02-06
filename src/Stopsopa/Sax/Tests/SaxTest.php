@@ -104,6 +104,7 @@ and can use reserved characters <coś tam coś tam>like
         <span:split2>some
         data</span:split>
         <span:split2><![CDATA[<span>cdata</span>]]></span:split>
+        <div data="empty" />
         <span:split2>
         <![CDATA[
         <span>cdata</span>

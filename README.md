@@ -189,7 +189,7 @@ Follow packagist instructions: [Packagist](https://packagist.org/packages/stopso
 ### Iteration:
 
     foreach ($sax_instance as $d) {
-        switch ($d['']) {
+        switch ($d['type']) {
             case Sax::N_TAG:
                     // do something witch decomposed tag
                 break;

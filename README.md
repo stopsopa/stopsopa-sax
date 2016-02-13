@@ -54,7 +54,7 @@ Follow packagist instructions: [Packagist](https://packagist.org/packages/stopso
     
 ## Nodes types:
 
-### Possible types witch their json representation:
+### Possible types with their json representation:
 
 -   Sax::N_TAG 
     
@@ -192,10 +192,10 @@ Follow packagist instructions: [Packagist](https://packagist.org/packages/stopso
     foreach ($sax_instance as $d) {
         switch ($d['type']) {
             case Sax::N_TAG:
-                    // do something witch decomposed tag
+                    // do something with decomposed tag
                 break;
             case Sax::N_DATA:
-                    // do something witch decomposed data between tag
+                    // do something with decomposed data between tag
                 break;
             ... etc.
         }

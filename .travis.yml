@@ -12,7 +12,7 @@ sudo: false
 # coverall vvv
 install:
   # currently version v1.0.0
-  - composer require satooshi/php-coveralls
+  - composer install --dev
 
 before_script:
   - curl -s http://getcomposer.org/installer | php

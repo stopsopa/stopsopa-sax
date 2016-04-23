@@ -9,27 +9,21 @@
     <!--referencja jest tu: http://apigen.juzna.cz/doc/sebastianbergmann/phpunit/class-PHPUnit_Util_Configuration.html-->
     <testsuites>
         <testsuite name="Test phpunit">
-            <directory>./src</directory>
-            <!--<file>tests/file.php</file>-->
+            <directory>src</directory>
         </testsuite>
     </testsuites>
-
-
-    <!-- dla wygenerowania codecoverage vvv -->
-
-    <!-- phpunit - -coverage-clover build/logs/clover.xml -->
     <logging>
         <log type="coverage-clover" target="build/logs/clover.xml"/>
     </logging>
 
-    <filter>
-        <whitelist>
-            <directory suffix="Test.php">./src</directory>
-            <exclude>
-                <directory>./vendor</directory>
-            </exclude>
-        </whitelist>
-    </filter>
+    <!--<filter>-->
+        <!--<whitelist>-->
+            <!--<directory suffix="Test.php">./src</directory>-->
+            <!--<exclude>-->
+                <!--<directory>./vendor</directory>-->
+            <!--</exclude>-->
+        <!--</whitelist>-->
+    <!--</filter>-->
     <!-- dla wygenerowania codecoverage ^^^ -->
 
     <!--<php>-->

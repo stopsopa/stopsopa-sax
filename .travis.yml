@@ -8,15 +8,9 @@ php:
   
 sudo: false
 
-
-# coverall vvv
-install:
-  # currently version v1.0.0
-  - composer install --dev
-
 before_script:
   - curl -s http://getcomposer.org/installer | php
-  - php composer.phar install --dev
+  - php composer.phar install
   - mkdir -p build/logs
 
 script:

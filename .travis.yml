@@ -8,9 +8,10 @@ php:
   
 sudo: false
 
-install:
-  - travis_retry composer install --prefer-source --no-interaction
-  - mkdir -p build/logs
+before_script:
+  - composer self-update
+  - composer global require "fxp/composer-asset-plugin:~1.0.0"
+  - composer install --prefer-source --no-interaction
 
 script:
   - phpunit --coverage-text --coverage-clover clover.xml

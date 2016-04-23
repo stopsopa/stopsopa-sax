@@ -13,9 +13,9 @@ class StreamTextIteratorTest extends PHPUnit_Framework_TestCase {
 
         $list = array(
             __DIR__.'/files/small_file.txt',
-            __DIR__.'/files/only_ascii.txt',
-            __DIR__.'/files/various_chars.txt',
-            __DIR__.'/files/only_china_like_unicode.txt'
+//            __DIR__.'/files/only_ascii.txt',
+//            __DIR__.'/files/various_chars.txt',
+//            __DIR__.'/files/only_china_like_unicode.txt'
         );
 
         foreach ($list as $f) {

@@ -9,3 +9,4 @@ vendor
 /coveralls.phar
 /build/logs
 /xdebug/profiles
+/web

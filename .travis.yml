@@ -8,9 +8,8 @@ php:
   
 sudo: false
 
-before_script:
-  - curl -s http://getcomposer.org/installer | php
-  - php composer.phar install
+install:
+  - travis_retry composer install --prefer-source --no-interaction
   - mkdir -p build/logs
 
 script:

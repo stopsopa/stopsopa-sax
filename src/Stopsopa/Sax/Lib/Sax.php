@@ -1,6 +1,6 @@
 <?php
 
-namespace Stopsopa\Sax;
+namespace Stopsopa\Sax\Lib;
 
 use Iterator;
 use Stopsopa\Sax\Exceptions\SaxException;

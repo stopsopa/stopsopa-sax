@@ -1,8 +1,8 @@
 <?php
 
-namespace Stopsopa\Sax\Tests;
+namespace Stopsopa\Sax\Tests\Lib;
 
-use Stopsopa\Sax\Sax;
+use Stopsopa\Sax\Lib\Sax;
 
 class SaxTest extends \PHPUnit_Framework_TestCase {
 

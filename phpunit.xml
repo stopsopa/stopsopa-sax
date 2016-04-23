@@ -9,9 +9,10 @@
     <!--referencja jest tu: http://apigen.juzna.cz/doc/sebastianbergmann/phpunit/class-PHPUnit_Util_Configuration.html-->
     <testsuites>
         <testsuite name="Test phpunit">
-            <directory>src</directory>
+            <directory>src/Stopsopa/Sax/Tests</directory>
         </testsuite>
     </testsuites>
+
     <logging>
         <log type="coverage-clover" target="build/logs/clover.xml"/>
         <log type="coverage-text" target="php://stdout" showUncoveredFiles="false"/>
@@ -19,7 +20,7 @@
 
     <filter>
         <whitelist>
-            <directory>src</directory>
+            <directory>src/Stopsopa/Sax/Lib/</directory>
         </whitelist>
     </filter>
     <!-- dla wygenerowania codecoverage ^^^ -->

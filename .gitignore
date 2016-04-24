@@ -11,3 +11,4 @@ vendor
 /xdebug/profiles
 /web
 /clover.xml
+/composer.lock

@@ -19,7 +19,7 @@
     </logging>
 
     <filter>
-        <whitelist>
+        <whitelist processUncoveredFilesFromWhitelist="false">
             <directory>src/Stopsopa/Sax/Lib/</directory>
         </whitelist>
     </filter>

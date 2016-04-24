@@ -55,7 +55,7 @@ class StreamTextIterator {
     public function __construct($mode = null)
     {
         $this->mode = $mode;
-
+        
         if (!in_array($this->mode, array(static::MODE_FILE, static::MODE_STRING))) {
             $this->mode = static::MODE_FILE;
         }

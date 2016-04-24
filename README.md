@@ -22,7 +22,7 @@ Follow packagist instructions: [Packagist](https://packagist.org/packages/stopso
 
 ### In file mode:
 
-    use Stopsopa\Sax\Sax;
+    use Stopsopa\Sax\Lib\Sax;
     
     $s = new Sax($path_to_file_witch_xml_or_html, array(
         'mode' => Sax::MODE_FILE
@@ -38,7 +38,7 @@ Follow packagist instructions: [Packagist](https://packagist.org/packages/stopso
 
 ### In string mode:
 
-    use Stopsopa\Sax\Sax;
+    use Stopsopa\Sax\Lib\Sax;
     
     $s = new Sax($xml_or_html_as_a_string, array(
         'mode' => Sax::MODE_STRING

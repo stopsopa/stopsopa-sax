@@ -158,7 +158,7 @@ class Sax implements Iterator
 
         if (is_string($this->cache) && strlen($this->cache) > 0) {
 
-            // if something come to this place, that mean it is some kind unclosed tag (tag, comment, or cdata)
+            // if something come to this place, that means it is some kind unclosed tag (tag, comment, or cdata)
             // return this as data
             $this->cache = array(
                 'type' => trim($this->cache) ? static::N_DATA : static::N_SPACES,
@@ -434,7 +434,6 @@ class Sax implements Iterator
 
     protected function _extractData($data, $type)
     {
-
         switch ($type) {
             case static::N_TAG:
 
@@ -469,7 +468,7 @@ class Sax implements Iterator
                     return ' ';
                 }, $data);
 
-                $replace = preg_replace_callback('#\s([^\s]+)\s*=\s*([^\s]+)#s', function ($m) use (&$a) {
+                $replace = preg_replace_callback('#\s([^\s]+)\s*=\s*([^\s><\/]+)#s', function ($m) use (&$a) {
                     if (array_key_exists($m[1], $a)) {
                         if (is_array($a[$m[1]])) {
                             $a[$m[1]][] = $m[2];
@@ -529,5 +528,9 @@ class Sax implements Iterator
 //                <!--
                 return mb_substr($data, 4, -3, $this->options['encoding']);
         }
+    }
+    public function setCache($cache) {
+        $this->cache = $cache;
+        return $this;
     }
 }

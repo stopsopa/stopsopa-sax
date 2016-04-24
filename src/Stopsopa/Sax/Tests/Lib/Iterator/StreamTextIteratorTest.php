@@ -4,10 +4,11 @@ namespace Stopsopa\Sax\Tests\Lib\Iterator;
 
 use PHPUnit_Framework_TestCase;
 use Stopsopa\Sax\Lib\Iterator\StreamTextIterator;
+use Exception;
 
 class StreamTextIteratorTest extends PHPUnit_Framework_TestCase {
 
-    protected $range = array(20, 21, 30, 32, 34, 45, 36, 37, 39, 40, 41, 1024, 2048);
+    protected $range = array(19, 21, 30, 32, 34, 45, 36, 37, 39, 40, 41, 1024, 2048);
 //    protected $range = array(20);
     public function testIterator() {
 
@@ -25,10 +26,23 @@ class StreamTextIteratorTest extends PHPUnit_Framework_TestCase {
             $this->_testFile($f);
             $this->_testString($f);
         }
+
+        try {
+            $this->_testFile(__DIR__.'/files/file_doesnt_exists.txt');
+        }
+        catch (Exception $e) {
+//            $this->ass
+            return;
+        }
+
+        $this->assertTrue(true, false, "Exception not catched");
+
     }
     protected function _testFile($file) {
 
-        $iter = new StreamTextIterator(StreamTextIterator::MODE_FILE);
+        $iter = new StreamTextIterator();
+
+        $iter->last();
 
         foreach ($this->range as $chunk) {
 

@@ -22,6 +22,9 @@
         <whitelist processUncoveredFilesFromWhitelist="false">
             <directory>src/Stopsopa/Sax/Lib/</directory>
         </whitelist>
+        <exclude>
+            <file>src/Stopsopa/Sax/Lib/AbstractParser.php</file>
+        </exclude>
     </filter>
     <!-- dla wygenerowania codecoverage ^^^ -->
 

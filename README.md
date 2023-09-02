@@ -3,6 +3,10 @@
 [![Latest Stable Version](https://poser.pugx.org/stopsopa/sax/v/stable)](https://packagist.org/packages/stopsopa/sax)
 [![License](https://poser.pugx.org/stopsopa/sax/license)](https://packagist.org/packages/stopsopa/sax)
 
+# DEPRECATED
+Created in 2016 - quite old now and not maintained.
+
+That's was actually fun to implement back then.
 
 
 <h1>stopsopa/sax</h1>
